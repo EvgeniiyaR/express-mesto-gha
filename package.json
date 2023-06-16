@@ -4,9 +4,7 @@
   "scripts": {
     "lint": "npx eslint .",
     "start": "node app.js",
-    "dev": "nodemon app.js",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "dev": "nodemon app.js"
   },
   "eslintConfig": {
     "extends": []
