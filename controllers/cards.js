@@ -20,8 +20,32 @@ const deleteCard = (req, res) => {
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
 
+const addLikeCard = (req, res) => {
+  const { id } = req.params;
+  Card.findByIdAndUpdate(
+    id,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
+    .then((card) => res.status(200).send(card))
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+};
+
+const deleteLikeCard = (req, res) => {
+  const { id } = req.params;
+  Card.findByIdAndUpdate(
+    id,
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
+    .then((card) => res.status(200).send(card))
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+};
+
 module.exports = {
   getCards,
   createCard,
   deleteCard,
+  addLikeCard,
+  deleteLikeCard,
 };
