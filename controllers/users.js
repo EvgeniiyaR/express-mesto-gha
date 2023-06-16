@@ -1,9 +1,10 @@
 const User = require('../models/user');
+const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require('../utils/errors');
 
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send(users))
-    .catch(() => res.status(500).send({ message: 'Server Error' }));
+    .catch(() => res.status(SERVER_ERROR).send({ message: 'Server Error' }));
 };
 
 const getUser = (req, res) => {
@@ -11,15 +12,15 @@ const getUser = (req, res) => {
   User.findById(id)
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: 'User not found' });
+        return res.status(NOT_FOUND).send({ message: 'User not found' });
       }
       return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(400).send({ message: 'Invalid user' });
+        return res.status(BAD_REQUEST).send({ message: 'Invalid user' });
       }
-      return res.status(500).send({ message: 'Server Error' });
+      return res.status(SERVER_ERROR).send({ message: 'Server Error' });
     });
 };
 
@@ -29,9 +30,9 @@ const createUser = (req, res) => {
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
+        return res.status(BAD_REQUEST).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
       }
-      return res.status(500).send({ message: 'Server Error' });
+      return res.status(SERVER_ERROR).send({ message: 'Server Error' });
     });
 };
 
@@ -47,15 +48,15 @@ const updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: 'User not found' });
+        return res.status(NOT_FOUND).send({ message: 'User not found' });
       }
       return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
+        return res.status(BAD_REQUEST).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
       }
-      return res.status(500).send({ message: 'Server Error' });
+      return res.status(SERVER_ERROR).send({ message: 'Server Error' });
     });
 };
 
@@ -71,15 +72,15 @@ const updateUserAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: 'User not found' });
+        return res.status(NOT_FOUND).send({ message: 'User not found' });
       }
       return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
+        return res.status(BAD_REQUEST).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
       }
-      return res.status(500).send({ message: 'Server Error' });
+      return res.status(SERVER_ERROR).send({ message: 'Server Error' });
     });
 };
 

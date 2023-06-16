@@ -1,5 +1,6 @@
 {
   "name": "express-mesto-gha",
+  "author": "Evgeniia Romanchenko",
   "version": "0.1.0",
   "scripts": {
     "lint": "npx eslint .",
