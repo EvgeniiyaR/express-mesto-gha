@@ -1,0 +1,39 @@
+{
+  "name": "express-mesto-gha",
+  "version": "0.1.0",
+  "scripts": {
+    "lint": "npx eslint .",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "eslintConfig": {
+    "extends": []
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "eslint": "^8.42.0",
+    "express": "^4.18.2",
+    "gh-pages": "^5.0.0",
+    "nodemon": "^2.0.22"
+  },
+  "homepage": "https://evgeniiyar.github.io/express-mesto-gha",
+  "dependencies": {
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "express": "^4.18.2",
+    "mongoose": "^7.3.0"
+  }
+}
