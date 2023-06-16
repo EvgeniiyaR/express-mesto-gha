@@ -24,7 +24,7 @@ const createUser = (req, res) => {
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: `${err.errors.name.properties.message}` });
+        return res.status(400).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
       }
       return res.status(500).send({ message: 'Server Error' });
     });
@@ -48,7 +48,7 @@ const updateUser = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: `${err.errors.name.properties.message}` });
+        return res.status(400).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
       }
       return res.status(500).send({ message: 'Server Error' });
     });
@@ -72,7 +72,7 @@ const updateUserAvatar = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: `${err.errors.name.properties.message}` });
+        return res.status(400).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
       }
       return res.status(500).send({ message: 'Server Error' });
     });
