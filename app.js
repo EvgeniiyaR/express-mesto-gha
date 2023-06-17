@@ -2,7 +2,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const routes = require('./routes');
-const { NOT_FOUND } = require('./utils/errors');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -22,11 +21,5 @@ app.use((req, res, next) => {
 });
 
 app.use(routes);
-
-app.use((req, res, next) => {
-  res.status(NOT_FOUND).send({ message: 'Not found' });
-
-  next();
-});
 
 app.listen(PORT);

@@ -12,13 +12,13 @@ const getUser = (req, res) => {
   User.findById(id)
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND).send({ message: 'User not found' });
+        return res.status(NOT_FOUND).send({ message: 'User Not Found' });
       }
       return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({ message: 'Invalid user' });
+        return res.status(BAD_REQUEST).send({ message: 'Invalid User ID' });
       }
       return res.status(SERVER_ERROR).send({ message: 'Server Error' });
     });
@@ -48,7 +48,7 @@ const updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND).send({ message: 'User not found' });
+        return res.status(NOT_FOUND).send({ message: 'User Not Found' });
       }
       return res.status(200).send(user);
     })
@@ -72,7 +72,7 @@ const updateUserAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND).send({ message: 'User not found' });
+        return res.status(NOT_FOUND).send({ message: 'User Not Found' });
       }
       return res.status(200).send(user);
     })

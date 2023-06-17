@@ -24,13 +24,13 @@ const deleteCard = (req, res) => {
   Card.findByIdAndRemove(id)
     .then((card) => {
       if (!card) {
-        return res.status(NOT_FOUND).send({ message: 'Card not found' });
+        return res.status(NOT_FOUND).send({ message: 'Card Not Found' });
       }
       return res.status(200).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({ message: 'Invalid card' });
+        return res.status(BAD_REQUEST).send({ message: 'Invalid Card ID' });
       }
       return res.status(SERVER_ERROR).send({ message: 'Server Error' });
     });
@@ -45,13 +45,13 @@ const addLikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return res.status(NOT_FOUND).send({ message: 'Card not found' });
+        return res.status(NOT_FOUND).send({ message: 'Card Not Found' });
       }
       return res.status(200).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({ message: 'Invalid card' });
+        return res.status(BAD_REQUEST).send({ message: 'Invalid Card ID' });
       }
       return res.status(SERVER_ERROR).send({ message: 'Server Error' });
     });
@@ -66,13 +66,13 @@ const deleteLikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return res.status(NOT_FOUND).send({ message: 'Card not found' });
+        return res.status(NOT_FOUND).send({ message: 'Card Not Found' });
       }
       return res.status(200).send(card);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({ message: 'Invalid card' });
+        return res.status(BAD_REQUEST).send({ message: 'Invalid Card ID' });
       }
       return res.status(SERVER_ERROR).send({ message: 'Server Error' });
     });
