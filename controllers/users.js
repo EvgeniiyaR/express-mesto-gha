@@ -1,6 +1,12 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require('../utils/errors');
+const {
+  BAD_REQUEST,
+  NOT_FOUND,
+  SERVER_ERROR,
+  UNAUTHORIZED,
+} = require('../utils/errors');
 
 const getUsers = (req, res) => {
   User.find({})
@@ -97,10 +103,21 @@ const updateUserAvatar = (req, res) => {
     });
 };
 
+const login = (req, res) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      return res.send({ token });
+    })
+    .catch(() => res.status(UNAUTHORIZED).send({ message: 'Wrong email or password' }));
+};
+
 module.exports = {
   getUsers,
   getUser,
   createUser,
   updateUser,
   updateUserAvatar,
+  login,
 };
