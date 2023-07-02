@@ -1,19 +1,19 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  SERVER_ERROR,
-  UNAUTHORIZED,
-  CONFLICT,
-  FORBIDDEN,
-} = require('../utils/errors');
+const ServerError = require('../errors/server-error');
+const BadRequestError = require('../errors/bad-request-error');
+const NotFoundError = require('../errors/not-found-error');
+const UnauthorizedError = require('../errors/unauthorized-error');
+const ConflictError = require('../errors/conflict-error');
+const ForbiddenError = require('../errors/forbidden-error');
 
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send(users))
-    .catch(() => res.status(SERVER_ERROR).send({ message: 'Server Error' }));
+    .catch(() => {
+      throw new ServerError('Server Error');
+    });
 };
 
 const getUser = (req, res) => {
@@ -21,15 +21,15 @@ const getUser = (req, res) => {
   User.findById(id)
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND).send({ message: 'User Not Found' });
+        throw new NotFoundError('User Not Found');
       }
       return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(BAD_REQUEST).send({ message: 'Invalid User ID' });
+        throw new BadRequestError('Invalid User ID');
       }
-      return res.status(SERVER_ERROR).send({ message: 'Server Error' });
+      throw new ServerError('Server Error');
     });
 };
 
@@ -38,11 +38,13 @@ const getCurrentUser = (req, res) => {
   User.findById(id)
     .then((user) => {
       if (!user) {
-        return res.status(UNAUTHORIZED).send({ message: 'Authorization required' });
+        throw new UnauthorizedError('Authorization required');
       }
       return res.status(200).send(user);
     })
-    .catch(() => res.status(SERVER_ERROR).send({ message: 'Server Error' }));
+    .catch(() => {
+      throw new ServerError('Server Error');
+    });
 };
 
 const createUser = (req, res) => {
@@ -55,13 +57,13 @@ const createUser = (req, res) => {
   } = req.body;
 
   if (!email || !password) {
-    return res.status(BAD_REQUEST).send({ message: 'Email and password are required' });
+    throw new BadRequestError('Email and password are required');
   }
 
   return User.findOne({ email })
     .then((user) => {
       if (user) {
-        return res.status(CONFLICT).send({ message: 'The user already exists' });
+        throw new ConflictError('The user already exists');
       }
 
       return bcrypt.hash(password, 10)
@@ -84,9 +86,9 @@ const createUser = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
+        throw new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`);
       }
-      return res.status(SERVER_ERROR).send({ message: 'Server Error' });
+      throw new ServerError('Server Error');
     });
 };
 
@@ -102,15 +104,15 @@ const updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND).send({ message: 'User Not Found' });
+        throw new NotFoundError('User Not Found');
       }
       return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
+        throw new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`);
       }
-      return res.status(SERVER_ERROR).send({ message: 'Server Error' });
+      throw new ServerError('Server Error');
     });
 };
 
@@ -126,15 +128,15 @@ const updateUserAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(NOT_FOUND).send({ message: 'User Not Found' });
+        throw new NotFoundError('User Not Found');
       }
       return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(BAD_REQUEST).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
+        throw new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`);
       }
-      return res.status(SERVER_ERROR).send({ message: 'Server Error' });
+      throw new ServerError('Server Error');
     });
 };
 
@@ -144,13 +146,13 @@ const login = (req, res) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return res.status(UNAUTHORIZED).send({ message: 'The user does not exist' });
+        throw new UnauthorizedError('The user does not exist');
       }
 
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return res.status(FORBIDDEN).send({ message: 'Wrong email or password' });
+            throw new ForbiddenError('Wrong email or password');
           }
           const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
 
@@ -165,9 +167,9 @@ const login = (req, res) => {
         })
         .catch((err) => {
           if (err.name === 'ValidationError') {
-            return res.status(BAD_REQUEST).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
+            throw new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`);
           }
-          return res.status(SERVER_ERROR).send({ message: 'Server Error' });
+          throw new ServerError('Server Error');
         });
     });
 };
