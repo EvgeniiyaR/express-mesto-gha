@@ -162,7 +162,6 @@ const login = (req, res, next) => {
           });
 
           res.send({ message: `User ${user.email} successfully logged in` });
-          res.end();
         })
         .catch((err) => {
           if (err.name === 'ValidationError') {

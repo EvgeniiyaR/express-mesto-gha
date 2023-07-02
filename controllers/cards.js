@@ -76,7 +76,7 @@ const deleteLikeCard = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        next(new NotFoundError('Card Not Found'));
+        return next(new NotFoundError('Card Not Found'));
       }
       return res.status(200).send(card);
     })
