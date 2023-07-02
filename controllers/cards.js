@@ -1,5 +1,10 @@
 const Card = require('../models/card');
-const { BAD_REQUEST, NOT_FOUND, SERVER_ERROR } = require('../utils/errors');
+const {
+  BAD_REQUEST,
+  NOT_FOUND,
+  SERVER_ERROR,
+  CONFLICT,
+} = require('../utils/errors');
 
 const getCards = (req, res) => {
   Card.find({})
@@ -21,12 +26,17 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => {
   const { id } = req.params;
-  Card.findByIdAndRemove(id)
+  const idCurrentUser = req.user._id;
+  Card.findById(id)
     .then((card) => {
       if (!card) {
         return res.status(NOT_FOUND).send({ message: 'Card Not Found' });
       }
-      return res.status(200).send(card);
+      if (card.owner.toString() !== idCurrentUser) {
+        return res.status(CONFLICT).send({ message: 'The current user does not have the rights to delete this card' });
+      }
+      return Card.findByIdAndRemove(id)
+        .then((cardDel) => res.status(200).send(cardDel));
     })
     .catch((err) => {
       if (err.name === 'CastError') {

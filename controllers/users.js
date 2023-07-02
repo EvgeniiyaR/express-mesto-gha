@@ -6,6 +6,8 @@ const {
   NOT_FOUND,
   SERVER_ERROR,
   UNAUTHORIZED,
+  CONFLICT,
+  FORBIDDEN,
 } = require('../utils/errors');
 
 const getUsers = (req, res) => {
@@ -31,6 +33,18 @@ const getUser = (req, res) => {
     });
 };
 
+const getCurrentUser = (req, res) => {
+  const id = req.user._id;
+  User.findById(id)
+    .then((user) => {
+      if (!user) {
+        return res.status(UNAUTHORIZED).send({ message: 'Authorization required' });
+      }
+      return res.status(200).send(user);
+    })
+    .catch(() => res.status(SERVER_ERROR).send({ message: 'Server Error' }));
+};
+
 const createUser = (req, res) => {
   const {
     name,
@@ -39,14 +53,27 @@ const createUser = (req, res) => {
     email,
     password,
   } = req.body;
-  bcrypt.hash(password, 10).then((hash) => User.create({
-    name,
-    about,
-    avatar,
-    email,
-    password: hash,
-  }))
-    .then((user) => res.status(201).send(user))
+
+  if (!email || !password) {
+    return res.status(BAD_REQUEST).send({ message: 'Email and password are required' });
+  }
+
+  return User.findOne({ email })
+    .then((user) => {
+      if (user) {
+        return res.status(CONFLICT).send({ message: 'The user already exists' });
+      }
+
+      return bcrypt.hash(password, 10)
+        .then((hash) => User.create({
+          name,
+          about,
+          avatar,
+          email,
+          password: hash,
+        }))
+        .then((newUser) => res.status(201).send(newUser));
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(BAD_REQUEST).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
@@ -105,12 +132,29 @@ const updateUserAvatar = (req, res) => {
 
 const login = (req, res) => {
   const { email, password } = req.body;
-  User.findUserByCredentials(email, password)
+
+  User.findOne({ email }).select('+password')
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-      return res.send({ token });
-    })
-    .catch(() => res.status(UNAUTHORIZED).send({ message: 'Wrong email or password' }));
+      if (!user) {
+        return res.status(FORBIDDEN).send({ message: 'The user does not exist' });
+      }
+
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            return res.status(FORBIDDEN).send({ message: 'Wrong email or password' });
+          }
+          const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+
+          return res.cookie('jwt', token, {
+            maxAge: 3600000 * 24 * 7,
+            httpOnly: true,
+            sameSite: true,
+          })
+            .end();
+        })
+        .catch(() => res.status(SERVER_ERROR).send({ message: 'Server Error' }));
+    });
 };
 
 module.exports = {
@@ -120,4 +164,5 @@ module.exports = {
   updateUser,
   updateUserAvatar,
   login,
+  getCurrentUser,
 };
