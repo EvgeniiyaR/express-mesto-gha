@@ -158,8 +158,10 @@ const login = (req, res) => {
             maxAge: 3600000 * 24 * 7,
             httpOnly: true,
             sameSite: true,
-          })
-            .end();
+          }).end();
+
+          // return res.send({ message: `User ${user.email} successfully logged in` });
+          // return res.status(200).send({ message: `User ${user.email} successfully logged in` });
         })
         .catch((err) => {
           if (err.name === 'ValidationError') {
