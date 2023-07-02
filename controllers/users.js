@@ -72,7 +72,15 @@ const createUser = (req, res) => {
           email,
           password: hash,
         }))
-        .then((newUser) => res.status(201).send(newUser));
+        .then((newUser) => res.status(201).send(
+          {
+            name: newUser.name,
+            about: newUser.about,
+            avatar: newUser.avatar,
+            email: newUser.email,
+            _id: newUser._id,
+          },
+        ));
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -136,7 +144,7 @@ const login = (req, res) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return res.status(FORBIDDEN).send({ message: 'The user does not exist' });
+        return res.status(UNAUTHORIZED).send({ message: 'The user does not exist' });
       }
 
       return bcrypt.compare(password, user.password)
@@ -153,7 +161,12 @@ const login = (req, res) => {
           })
             .end();
         })
-        .catch(() => res.status(SERVER_ERROR).send({ message: 'Server Error' }));
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            return res.status(BAD_REQUEST).send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
+          }
+          return res.status(SERVER_ERROR).send({ message: 'Server Error' });
+        });
     });
 };
 
