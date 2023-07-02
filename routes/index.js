@@ -23,13 +23,13 @@ router.post('/signin', celebrate({
   }),
 }), login);
 
-router.use(errors());
-
 router.use(auth);
 
 router.use('/users', userRoutes);
 
 router.use('/cards', cardRoutes);
+
+router.use(errors());
 
 router.use((req, res, next) => {
   res.status(NOT_FOUND).send({ message: 'Not found' });
