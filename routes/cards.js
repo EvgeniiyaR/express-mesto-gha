@@ -8,6 +8,12 @@ const {
   deleteLikeCard,
 } = require('../controllers/cards');
 
+const validationId = celebrate({
+  params: Joi.object().keys({
+    id: Joi.string().min(24).max(24).pattern(/^[a-z0-9]+$/),
+  }),
+});
+
 router.get('/', getCards);
 
 router.post('/', celebrate({
@@ -17,10 +23,10 @@ router.post('/', celebrate({
   }),
 }), createCard);
 
-router.delete('/:id', deleteCard);
+router.delete('/:id', validationId, deleteCard);
 
-router.put('/:id/likes', addLikeCard);
+router.put('/:id/likes', validationId, addLikeCard);
 
-router.delete('/:id/likes', deleteLikeCard);
+router.delete('/:id/likes', validationId, deleteLikeCard);
 
 module.exports = router;
