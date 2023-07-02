@@ -170,7 +170,9 @@ const login = (req, res, next) => {
           next(new ServerError('Server Error'));
         });
     })
-    .catch(() => next(new ServerError('Server Error')));
+    .catch(() => {
+      // next(new ServerError('Server Error'));
+    });
 };
 
 module.exports = {

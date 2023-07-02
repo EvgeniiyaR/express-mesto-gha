@@ -6,7 +6,7 @@ const errorHandler = (err, req, res, next) => {
   } else {
     res.status(SERVER_ERROR).send({ message: err.message || 'Server Error' });
   }
-  next();
+  // next();
 };
 
 module.exports = errorHandler;
