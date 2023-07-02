@@ -161,7 +161,7 @@ const login = (req, res, next) => {
             sameSite: true,
           });
 
-          res.send({ message: `User ${user.email} successfully logged in` });
+          res.status(200).send({ message: `User ${user.email} successfully logged in` });
         })
         .catch((err) => {
           if (err.name === 'ValidationError') {
