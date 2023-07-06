@@ -1,27 +1,18 @@
 const Card = require('../models/card');
-const ServerError = require('../errors/server-error');
-const BadRequestError = require('../errors/bad-request-error');
 const NotFoundError = require('../errors/not-found-error');
 const ForbiddenError = require('../errors/forbidden-error');
 
 const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.status(200).send(cards))
-    .catch(() => {
-      next(new ServerError('Server Error'));
-    });
+    .catch((err) => next(err));
 };
 
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user })
     .then((card) => res.status(201).send(card))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
-      }
-      next(new ServerError('Server Error'));
-    });
+    .catch((err) => next(err));
 };
 
 const deleteCard = (req, res, next) => {
@@ -30,20 +21,16 @@ const deleteCard = (req, res, next) => {
   Card.findById(id)
     .then((card) => {
       if (!card) {
-        next(new NotFoundError('Card Not Found'));
+        return next(new NotFoundError('Card Not Found'));
       }
       if (card.owner.toString() !== idCurrentUser) {
-        next(new ForbiddenError('The current user does not have the rights to delete this card'));
+        return next(new ForbiddenError('The current user does not have the rights to delete this card'));
       }
-      return Card.findByIdAndRemove(id)
-        .then((cardDel) => res.status(200).send(cardDel));
+      return Card.deleteOne()
+        .then(() => res.status(200).send({ message: `Card ${id} successfully delete` }))
+        .catch((err) => next(err));
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Invalid Card ID'));
-      }
-      next(new ServerError('Server Error'));
-    });
+    .catch((err) => next(err));
 };
 
 const addLikeCard = (req, res, next) => {
@@ -55,16 +42,11 @@ const addLikeCard = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        next(new NotFoundError('Card Not Found'));
+        return next(new NotFoundError('Card Not Found'));
       }
       return res.status(200).send(card);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Invalid Card ID'));
-      }
-      next(new ServerError('Server Error'));
-    });
+    .catch((err) => next(err));
 };
 
 const deleteLikeCard = (req, res, next) => {
@@ -80,12 +62,7 @@ const deleteLikeCard = (req, res, next) => {
       }
       return res.status(200).send(card);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Invalid Card ID'));
-      }
-      next(new ServerError('Server Error'));
-    });
+    .catch((err) => next(err));
 };
 
 module.exports = {

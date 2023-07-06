@@ -1,50 +1,35 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const ServerError = require('../errors/server-error');
-const BadRequestError = require('../errors/bad-request-error');
 const NotFoundError = require('../errors/not-found-error');
 const UnauthorizedError = require('../errors/unauthorized-error');
 const ConflictError = require('../errors/conflict-error');
-const ForbiddenError = require('../errors/forbidden-error');
 
 const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.status(200).send(users))
-    .catch(() => {
-      next(new ServerError('Server Error'));
-    });
+    .catch((err) => next(err));
+};
+
+const findByIdAndGetUser = (res, next, id, message) => {
+  User.findById(id)
+    .then((user) => {
+      if (!user) {
+        return next(new NotFoundError(message));
+      }
+      return res.status(200).send(user);
+    })
+    .catch((err) => next(err));
 };
 
 const getUser = (req, res, next) => {
   const { id } = req.params;
-  User.findById(id)
-    .then((user) => {
-      if (!user) {
-        next(new NotFoundError('User Not Found'));
-      }
-      return res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Invalid User ID'));
-      }
-      next(new ServerError('Server Error'));
-    });
+  findByIdAndGetUser(res, next, id, 'User Not Found');
 };
 
 const getCurrentUser = (req, res, next) => {
   const id = req.user._id;
-  User.findById(id)
-    .then((user) => {
-      if (!user) {
-        next(new UnauthorizedError('Authorization required'));
-      }
-      return res.status(200).send(user);
-    })
-    .catch(() => {
-      next(new ServerError('Server Error'));
-    });
+  findByIdAndGetUser(res, next, id, 'Not Found');
 };
 
 const createUser = (req, res, next) => {
@@ -56,16 +41,9 @@ const createUser = (req, res, next) => {
     password,
   } = req.body;
 
-  if (!email || !password) {
-    next(new BadRequestError('Email and password are required'));
-  }
-
   return User.findOne({ email })
-    .then((user) => {
-      if (user) {
-        next(new ConflictError('The user already exists'));
-      }
-      return bcrypt.hash(password, 10)
+    .then(() => {
+      bcrypt.hash(password, 10)
         .then((hash) => User.create({
           name,
           about,
@@ -82,62 +60,42 @@ const createUser = (req, res, next) => {
             _id: newUser._id,
           },
         ))
-        .catch(next);
+        .catch((err) => {
+          if (err.code === 11000) {
+            return next(new ConflictError('The user already exists'));
+          }
+          return next(err);
+        });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+    .catch((err) => next(err));
+};
+
+const findByIdAndUpdateUser = (req, res, next, info) => {
+  User.findByIdAndUpdate(
+    req.user._id,
+    info,
+    {
+      new: true,
+      runValidators: true,
+    },
+  )
+    .then((user) => {
+      if (!user) {
+        return next(new NotFoundError('Not Found'));
       }
-      next(new ServerError('Server Error'));
-    });
+      return res.status(200).send(user);
+    })
+    .catch((err) => next(err));
 };
 
 const updateUser = (req, res, next) => {
   const { name, about } = req.body;
-  User.findByIdAndUpdate(
-    req.user._id,
-    { name, about },
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
-    .then((user) => {
-      if (!user) {
-        next(new NotFoundError('User Not Found'));
-      }
-      return res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
-      }
-      next(new ServerError('Server Error'));
-    });
+  findByIdAndUpdateUser(req, res, next, { name, about });
 };
 
 const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
-  User.findByIdAndUpdate(
-    req.user._id,
-    { avatar },
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
-    .then((user) => {
-      if (!user) {
-        next(new NotFoundError('User Not Found'));
-      }
-      return res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
-      }
-      next(new ServerError('Server Error'));
-    });
+  findByIdAndUpdateUser(req, res, next, { avatar });
 };
 
 const login = (req, res, next) => {
@@ -146,13 +104,13 @@ const login = (req, res, next) => {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        next(new UnauthorizedError('The user does not exist'));
+        return next(new UnauthorizedError('The user does not exist'));
       }
 
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            next(new ForbiddenError('Wrong email or password'));
+            return next(new UnauthorizedError('Wrong email or password'));
           }
           const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
           res.cookie('jwt', token, {
@@ -161,18 +119,11 @@ const login = (req, res, next) => {
             sameSite: true,
           });
 
-          res.status(200).send({ message: `User ${user.email} successfully logged in` });
+          return res.status(200).send({ message: `User ${user.email} successfully logged in` });
         })
-        .catch((err) => {
-          if (err.name === 'ValidationError') {
-            next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
-          }
-          next(new ServerError('Server Error'));
-        });
+        .catch((err) => next(err));
     })
-    .catch(() => {
-      // next(new ServerError('Server Error'));
-    });
+    .catch((err) => next(err));
 };
 
 module.exports = {

@@ -7,20 +7,15 @@
     "start": "node app.js",
     "dev": "nodemon app.js"
   },
-  "eslintConfig": {
-    "extends": []
-  },
   "devDependencies": {
     "eslint": "^8.42.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.27.5",
-    "gh-pages": "^5.0.0",
     "nodemon": "^2.0.22"
   },
   "homepage": "https://evgeniiyar.github.io/express-mesto-gha",
   "dependencies": {
     "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.2",
     "celebrate": "^15.0.1",
     "cookie-parser": "^1.4.6",
     "dotenv": "^16.3.1",

@@ -7,10 +7,12 @@ const {
   addLikeCard,
   deleteLikeCard,
 } = require('../controllers/cards');
+const { URL_PATTERN, ID_PATTERN } = require('../utils/constants');
 
 const validationId = celebrate({
   params: Joi.object().keys({
-    id: Joi.string().min(24).max(24).pattern(/^[a-z0-9]+$/),
+    id: Joi.string().required().min(24).max(24)
+      .pattern(ID_PATTERN),
   }),
 });
 
@@ -18,7 +20,7 @@ router.get('/', getCards);
 
 router.post('/', celebrate({
   body: Joi.object().keys({
-    link: Joi.string().required().pattern(/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/),
+    link: Joi.string().required().pattern(URL_PATTERN),
     name: Joi.string().required().min(2).max(30),
   }),
 }), createCard);
