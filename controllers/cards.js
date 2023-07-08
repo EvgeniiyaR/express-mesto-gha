@@ -26,18 +26,18 @@ const deleteCard = (req, res, next) => {
       if (card.owner.toString() !== idCurrentUser) {
         return next(new ForbiddenError('The current user does not have the rights to delete this card'));
       }
-      return Card.deleteOne()
+      return card.deleteOne()
         .then(() => res.status(200).send({ message: `Card ${id} successfully delete` }))
         .catch((err) => next(err));
     })
     .catch((err) => next(err));
 };
 
-const addLikeCard = (req, res, next) => {
+const likeCard = (req, res, next, objAction) => {
   const { id } = req.params;
   Card.findByIdAndUpdate(
     id,
-    { $addToSet: { likes: req.user._id } },
+    objAction,
     { new: true },
   )
     .then((card) => {
@@ -49,20 +49,12 @@ const addLikeCard = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+const addLikeCard = (req, res, next) => {
+  likeCard(req, res, next, { $addToSet: { likes: req.user._id } });
+};
+
 const deleteLikeCard = (req, res, next) => {
-  const { id } = req.params;
-  Card.findByIdAndUpdate(
-    id,
-    { $pull: { likes: req.user._id } },
-    { new: true },
-  )
-    .then((card) => {
-      if (!card) {
-        return next(new NotFoundError('Card Not Found'));
-      }
-      return res.status(200).send(card);
-    })
-    .catch((err) => next(err));
+  likeCard(req, res, next, { $pull: { likes: req.user._id } });
 };
 
 module.exports = {

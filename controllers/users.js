@@ -41,33 +41,29 @@ const createUser = (req, res, next) => {
     password,
   } = req.body;
 
-  return User.findOne({ email })
-    .then(() => {
-      bcrypt.hash(password, 10)
-        .then((hash) => User.create({
-          name,
-          about,
-          avatar,
-          email,
-          password: hash,
-        }))
-        .then((newUser) => res.status(201).send(
-          {
-            name: newUser.name,
-            about: newUser.about,
-            avatar: newUser.avatar,
-            email: newUser.email,
-            _id: newUser._id,
-          },
-        ))
-        .catch((err) => {
-          if (err.code === 11000) {
-            return next(new ConflictError('The user already exists'));
-          }
-          return next(err);
-        });
-    })
-    .catch((err) => next(err));
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
+    .then((newUser) => res.status(201).send(
+      {
+        name: newUser.name,
+        about: newUser.about,
+        avatar: newUser.avatar,
+        email: newUser.email,
+        _id: newUser._id,
+      },
+    ))
+    .catch((err) => {
+      if (err.code === 11000) {
+        return next(new ConflictError('The user already exists'));
+      }
+      return next(err);
+    });
 };
 
 const findByIdAndUpdateUser = (req, res, next, info) => {
