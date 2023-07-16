@@ -2,11 +2,20 @@ const router = require('express').Router();
 const { celebrate, Joi, errors } = require('celebrate');
 const userRoutes = require('./users');
 const cardRoutes = require('./cards');
-const { createUser, login } = require('../controllers/users');
+const { createUser, login, deleteCookies } = require('../controllers/users');
 const auth = require('../middlewares/auth');
 const errorHandler = require('../middlewares/error-handler');
 const { URL_PATTERN } = require('../utils/constants');
 const NotFoundError = require('../errors/not-found-error');
+const { requestLogger, errorLogger } = require('../middlewares/logger');
+
+router.use(requestLogger);
+
+router.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
 
 router.post('/signup', celebrate({
   body: Joi.object().keys({
@@ -30,6 +39,10 @@ router.use(auth);
 router.use('/users', userRoutes);
 
 router.use('/cards', cardRoutes);
+
+router.use(errorLogger);
+
+router.use('/logout', deleteCookies);
 
 router.use(errors());
 

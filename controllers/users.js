@@ -1,3 +1,4 @@
+const { NODE_ENV, JWT_SECRET } = process.env;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
@@ -108,7 +109,7 @@ const login = (req, res, next) => {
           if (!matched) {
             return next(new UnauthorizedError('Wrong email or password'));
           }
-          const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+          const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'secret-key', { expiresIn: '7d' });
           res.cookie('jwt', token, {
             maxAge: 3600000 * 24 * 7,
             httpOnly: true,
@@ -122,6 +123,10 @@ const login = (req, res, next) => {
     .catch((err) => next(err));
 };
 
+const deleteCookies = (req, res) => {
+  res.status(200).clearCookie('jwt').send({ message: 'Cookies removed' });
+};
+
 module.exports = {
   getUsers,
   getUser,
@@ -130,4 +135,5 @@ module.exports = {
   updateUserAvatar,
   login,
   getCurrentUser,
+  deleteCookies,
 };
