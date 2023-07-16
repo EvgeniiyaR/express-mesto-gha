@@ -113,8 +113,7 @@ const login = (req, res, next) => {
           res.cookie('jwt', token, {
             maxAge: 3600000 * 24 * 7,
             httpOnly: true,
-            secure: true,
-            sameSite: 'none',
+            sameSite: true,
           });
 
           return res.status(200).send({ message: `User ${user.email} successfully logged in` });
